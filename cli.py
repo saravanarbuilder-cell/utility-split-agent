@@ -1,11 +1,13 @@
-"""Parse a utility bill PDF and split it across tenants — end to end.
+"""Fetch/parse a utility bill and split it across tenants — end to end.
 
-    python cli.py bills/may_water.pdf                 # parse PDF, then split
-    python cli.py bills/may_water.pdf --config config/tenants.yaml
+    python cli.py bills/may_water.pdf                 # parse a local PDF, then split
+    python cli.py --fetch example                     # download from a provider, parse, split
     python cli.py --amount 247.86                     # skip the LLM; split a known total
+    python cli.py --list-providers                    # show registered fetchers
 
-The PDF path uses the LLM parser (needs ANTHROPIC_API_KEY in .env). The
---amount form does the split only and needs no credentials.
+--fetch downloads the latest bill (needs the provider's login in .env), then
+parses it. The PDF path uses the LLM parser (needs ANTHROPIC_API_KEY in .env).
+The --amount form does the split only and needs no credentials.
 """
 import argparse
 import sys
@@ -55,15 +57,24 @@ def main(argv=None) -> int:
         description="Parse a utility bill PDF and split it across tenants.",
     )
     p.add_argument("pdf", nargs="?", help="path to the bill PDF (parsed via the LLM)")
+    p.add_argument("--fetch", metavar="PROVIDER", help="download the latest bill from a provider, then parse it")
     p.add_argument("--amount", help="split this total instead of parsing a PDF (no credentials needed)")
     p.add_argument("--config", help="tenant config YAML (default: config/tenants.yaml, else the example)")
     p.add_argument("--model", default="claude-opus-4-8", help="model for PDF extraction")
+    p.add_argument("--download-dir", default="downloads", help="where fetched bills are saved (default: downloads/)")
+    p.add_argument("--headful", action="store_true", help="show the browser during --fetch (default: headless)")
+    p.add_argument("--list-providers", action="store_true", help="list registered fetchers and exit")
     args = p.parse_args(argv)
 
-    if not args.pdf and not args.amount:
-        p.error("provide a PDF path, or --amount to split a known total")
-    if args.pdf and args.amount:
-        p.error("provide either a PDF path or --amount, not both")
+    if args.list_providers:
+        from fetchers import available
+
+        print("Available providers:", ", ".join(available()) or "(none)")
+        return 0
+
+    sources = [bool(args.pdf), bool(args.fetch), bool(args.amount)]
+    if sum(sources) != 1:
+        p.error("provide exactly one of: a PDF path, --fetch PROVIDER, or --amount")
 
     config_path = _resolve_config(args.config)
     if not config_path.exists():
@@ -75,10 +86,29 @@ def main(argv=None) -> int:
     if args.amount:
         total = args.amount
     else:
-        pdf_path = Path(args.pdf)
-        if not pdf_path.exists():
-            print(f"error: PDF not found: {pdf_path}", file=sys.stderr)
-            return 2
+        if args.fetch:
+            # Fetch the latest bill from the provider portal (needs login in .env).
+            from fetchers import get_fetcher_class
+
+            try:
+                fetcher = get_fetcher_class(args.fetch).from_env(
+                    download_dir=args.download_dir, headless=not args.headful
+                )
+                print(f"Fetching latest bill from '{args.fetch}'...")
+                pdf_path = fetcher.fetch_latest_bill()
+                print(f"Downloaded: {pdf_path}")
+            except (KeyError, ValueError) as e:  # unknown provider / missing creds
+                print(f"error: {e}", file=sys.stderr)
+                return 2
+            except Exception as e:  # browser/login/download failure
+                print(f"error: could not fetch bill: {e}", file=sys.stderr)
+                return 1
+        else:
+            pdf_path = Path(args.pdf)
+            if not pdf_path.exists():
+                print(f"error: PDF not found: {pdf_path}", file=sys.stderr)
+                return 2
+
         # Imported lazily so --amount and --help don't require the anthropic SDK.
         from parser import parse_bill
 

@@ -23,3 +23,17 @@ def test_requires_pdf_or_amount(capsys):
 def test_missing_config_returns_2(capsys):
     rc = cli.main(["--amount", "10.00", "--config", "config/does_not_exist.yaml"])
     assert rc == 2
+
+
+def test_list_providers(capsys):
+    rc = cli.main(["--list-providers"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "example" in out
+
+
+def test_fetch_unknown_provider_returns_2(capsys):
+    rc = cli.main(["--fetch", "nope", "--config", "config/tenants.example.yaml"])
+    err = capsys.readouterr().err
+    assert rc == 2
+    assert "Unknown provider" in err

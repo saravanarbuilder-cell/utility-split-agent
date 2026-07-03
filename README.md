@@ -64,14 +64,33 @@ bill = parse_bill("bills/may_water.pdf")   # -> ParsedBill
 split_bill(bill.amount, config)            # amount feeds the engine as the total
 ```
 
-## CLI
+## Provider fetchers
 
-`cli.py` runs the whole pipeline — parse a bill PDF, then split it:
+`fetchers/` logs into a utility portal with Playwright and downloads the latest
+bill PDF. One module per provider, all behind `BaseFetcher`, which owns the
+browser lifecycle and credential loading; each provider only implements `login`
+and `download_latest_bill`. Fetchers are **read-only** — they download bills and
+never submit charges (a human enters those; Apartments.com is never automated).
 
 ```bash
-python cli.py bills/may_water.pdf                  # parse PDF (needs API key), then split
+pip install playwright && python -m playwright install chromium   # one-time
+```
+
+`fetchers/example_provider.py` is a runnable template — copy it to
+`fetchers/<your_provider>.py` and adjust the selectors to your portal. Credentials
+come from `.env` only (`PROVIDER1_URL` / `_USERNAME` / `_PASSWORD`), never from
+code or the command line.
+
+## CLI
+
+`cli.py` runs the whole pipeline — fetch or parse a bill, then split it:
+
+```bash
+python cli.py --fetch example                      # download from a provider, parse, split
+python cli.py bills/may_water.pdf                  # parse a local PDF (needs API key), then split
 python cli.py bills/may_water.pdf --config config/tenants.yaml
 python cli.py --amount 247.86                      # skip the LLM; split a known total (no key)
+python cli.py --list-providers                     # show registered fetchers
 ```
 
 It resolves the config the same way `demo.py` does (prefers `config/tenants.yaml`,
@@ -82,7 +101,7 @@ falls back to the example).
 - [x] Split engine (5 methods, tested)
 - [x] Demo mode with synthetic data
 - [x] Bill parser (LLM: PDF → amount / period / meter reading; validation tested)
-- [ ] Provider fetchers (Playwright, one module per provider)
+- [x] Provider fetchers (Playwright, BaseFetcher + registry; example template, lifecycle tested)
 
 ## License
 
