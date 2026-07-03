@@ -2,12 +2,9 @@
 
 The credential + registry tests are pure (no Playwright, no browser, no network).
 The integration test drives the real `example` fetcher against a locally served
-fake portal; it skips automatically if Playwright's browser binary isn't installed
-(`playwright install chromium`), so the default suite stays green everywhere.
+fake portal (see the `fake_portal` / `require_chromium` fixtures in conftest.py);
+it skips automatically when the browser binary isn't installed.
 """
-import functools
-import http.server
-import threading
 from pathlib import Path
 
 import pytest
@@ -52,52 +49,7 @@ def test_fetcher_from_env_builds_with_credentials():
 
 # --- integration: real browser against a local fake portal -------------------
 
-_LOGIN_HTML = """<!doctype html><title>Login</title>
-<form action="billing.html" method="get">
-  <label for="u">Username</label><input id="u" name="u">
-  <label for="p">Password</label><input id="p" name="p" type="password">
-  <button type="submit">Sign in</button>
-</form>"""
-
-_BILLING_HTML = """<!doctype html><title>Billing</title>
-<a href="#">Billing</a>
-<a href="bill.pdf" download>Download PDF</a>"""
-
-_PDF_BYTES = b"%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n"
-
-
-@pytest.fixture
-def fake_portal(tmp_path):
-    """Serve a tiny login+billing site over HTTP; yield the login URL."""
-    site = tmp_path / "site"
-    site.mkdir()
-    (site / "login.html").write_text(_LOGIN_HTML)
-    (site / "billing.html").write_text(_BILLING_HTML)
-    (site / "bill.pdf").write_bytes(_PDF_BYTES)
-
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(site))
-    server = http.server.HTTPServer(("127.0.0.1", 0), handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    port = server.server_address[1]
-    try:
-        yield f"http://127.0.0.1:{port}/login.html"
-    finally:
-        server.shutdown()
-        thread.join()
-
-
-def test_fetch_latest_bill_against_fake_portal(tmp_path, fake_portal):
-    pytest.importorskip("playwright.sync_api")
-    from playwright.sync_api import sync_playwright
-
-    # Skip if the browser binary isn't installed (playwright install chromium).
-    try:
-        with sync_playwright() as pw:
-            pw.chromium.launch(headless=True).close()
-    except Exception as e:
-        pytest.skip(f"chromium not available: {e}")
-
+def test_fetch_latest_bill_against_fake_portal(tmp_path, fake_portal, require_chromium):
     download_dir = tmp_path / "downloads"
     creds = ProviderCredentials(url=fake_portal, username="u", password="p")
     fetcher = ExampleProviderFetcher(creds, download_dir=download_dir, headless=True)
