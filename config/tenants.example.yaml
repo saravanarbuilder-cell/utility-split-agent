@@ -1,0 +1,21 @@
+# EXAMPLE config — dummy data only. Safe to commit.
+# Copy to config/tenants.yaml (gitignored) and fill in your real values locally.
+
+method: fixed_percent   # equal | fixed_percent | fixed_share | occupancy | square_footage
+
+units:
+  - unit: "A"
+    tenant: "Tenant One"
+    percent: 40
+  - unit: "B"
+    tenant: "Tenant Two"
+    percent: 35
+  - unit: "C"
+    tenant: "Tenant Three"
+    percent: 25
+
+# --- other methods, for reference (only the relevant field is read) ---
+# method: equal          -> no per-unit field needed
+# method: fixed_share    -> share: 2
+# method: occupancy      -> occupants: 3
+# method: square_footage -> sqft: 900
