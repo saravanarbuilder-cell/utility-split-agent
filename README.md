@@ -64,6 +64,19 @@ bill = parse_bill("bills/may_water.pdf")   # -> ParsedBill
 split_bill(bill.amount, config)            # amount feeds the engine as the total
 ```
 
+## CLI
+
+`cli.py` runs the whole pipeline — parse a bill PDF, then split it:
+
+```bash
+python cli.py bills/may_water.pdf                  # parse PDF (needs API key), then split
+python cli.py bills/may_water.pdf --config config/tenants.yaml
+python cli.py --amount 247.86                      # skip the LLM; split a known total (no key)
+```
+
+It resolves the config the same way `demo.py` does (prefers `config/tenants.yaml`,
+falls back to the example).
+
 ## Status
 
 - [x] Split engine (5 methods, tested)
