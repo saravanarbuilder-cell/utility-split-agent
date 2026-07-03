@@ -8,6 +8,54 @@ Design principle: **deterministic work is code, judgment is the LLM.** The split
 math is pure, tested Python. An LLM is used only for the fuzzy step — reading a
 messy bill PDF into structured fields.
 
+## Architecture
+
+Three stages, `fetch → parse → split`. The LLM touches exactly one step; every
+correctness guarantee (Decimal money, date/range checks, the split math) lives in
+pure Python.
+
+```
+    provider portal   (login in .env)
+                           │
+                           ▼
+    ┌──────────────────────────────────────────────┐
+    │ FETCH   fetchers/ · BaseFetcher              │
+    │         Playwright, read-only                │
+    │         fetch_latest_bill()  ──▶  bill.pdf   │
+    └──────────────────────────────────────────────┘
+                           │   bill.pdf
+                           ▼
+    ┌──────────────────────────────────────────────┐
+    │ PARSE   parser/                              │
+    │   extract_bill_fields ─▶ Claude (LLM)        │
+    │                           ▲ only fuzzy step  │
+    │   raw fields ─▶ build_parsed_bill            │
+    │      (pure: Decimal, dates, range; tested)   │
+    └──────────────────────────────────────────────┘
+                           │   ParsedBill.amount  (the total)
+    config/tenants.yaml ──────────▶ ▼
+      (method + weights)
+    ┌──────────────────────────────────────────────┐
+    │ SPLIT   splitter/engine.py                   │
+    │   split_bill()                               │
+    │     Decimal · 5 methods · exact rounding     │
+    │   ─▶ per-tenant charges  (sum == total)      │
+    └──────────────────────────────────────────────┘
+                           │
+                           ▼
+    human enters charges in Apartments.com
+      (never automated — ToS + account safety)
+
+    cli.py runs it all:  --fetch PROVIDER │ <bill.pdf> │ --amount
+```
+
+- **`code` vs `LLM`** — only `extract_bill_fields` calls Claude. Its messy output
+  is immediately validated by `build_parsed_bill`, which is pure and unit-tested.
+- **Read-only fetchers** — they download bills and nothing else. A human enters the
+  final per-tenant charges into Apartments.com; that step is never automated.
+- **Secrets** — credentials and real splits live only in `.env` / `config/tenants.yaml`
+  (both gitignored); committed `*.example` files hold placeholders.
+
 ## Quick start
 
 ```bash
