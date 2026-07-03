@@ -98,10 +98,14 @@ falls back to the example).
 
 ## Status
 
-- [x] Split engine (5 methods, tested)
+All stages built and tested — full pipeline runs **fetch → parse → split**.
+
+- [x] Split engine (5 methods, Decimal money, tested)
 - [x] Demo mode with synthetic data
-- [x] Bill parser (LLM: PDF → amount / period / meter reading; validation tested)
-- [x] Provider fetchers (Playwright, BaseFetcher + registry; example template, lifecycle tested)
+- [x] Bill parser (LLM: PDF → amount / period / meter reading; pure validation tested)
+- [x] Provider fetchers (Playwright, `BaseFetcher` + registry; example template, lifecycle tested)
+- [x] CLI (`--fetch` / PDF / `--amount`, wired end to end)
+- [x] End-to-end integration test (fetch → parse → split)
 
 ## License
 
