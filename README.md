@@ -1,5 +1,7 @@
 # Utility Split Agent
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Config-driven tool that splits shared utility bills (water, etc.) across rental
 tenants using a chosen allocation method, with money-safe arithmetic and an
 auditable rounding trail.
