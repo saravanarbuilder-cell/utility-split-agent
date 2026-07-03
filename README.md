@@ -1,5 +1,6 @@
 # Utility Split Agent
 
+[![CI](https://github.com/saravanarbuilder-cell/utility-split-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/saravanarbuilder-cell/utility-split-agent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Config-driven tool that splits shared utility bills (water, etc.) across rental
