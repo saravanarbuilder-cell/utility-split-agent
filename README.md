@@ -158,6 +158,12 @@ All stages built and tested — full pipeline runs **fetch → parse → split**
 - [x] CLI (`--fetch` / PDF / `--amount`, wired end to end)
 - [x] End-to-end integration test (fetch → parse → split)
 
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the next public milestones. The near-term focus
+is making the project easier to try quickly, safer to adapt to real utility
+providers, and clearer as a reference architecture for agent-assisted workflows.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
