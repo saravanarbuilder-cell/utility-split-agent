@@ -41,6 +41,26 @@ def test_fixed_percent_rejects_bad_sum():
         split_bill("100.00", cfg)
 
 
+def test_weighted_method_rejects_missing_weight():
+    cfg = {"method": "occupancy", "units": [
+        {"unit": "A", "tenant": "T1", "occupants": 2},
+        {"unit": "B", "tenant": "T2"},
+    ]}
+
+    with pytest.raises(ValueError, match="missing 'occupants'"):
+        split_bill("100.00", cfg)
+
+
+def test_weighted_method_rejects_zero_total_weight():
+    cfg = {"method": "square_footage", "units": [
+        {"unit": "A", "tenant": "T1", "sqft": 0},
+        {"unit": "B", "tenant": "T2", "sqft": 0},
+    ]}
+
+    with pytest.raises(ValueError, match="Weights sum to zero"):
+        split_bill("100.00", cfg)
+
+
 def test_fixed_share_normalizes():
     cfg = {"method": "fixed_share", "units": [
         {"unit": "A", "tenant": "T1", "share": 2},
