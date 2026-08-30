@@ -16,6 +16,7 @@ from pathlib import Path
 import yaml
 
 from splitter.engine import split_bill
+from splitter.output import format_split_table
 
 
 def _resolve_config(explicit: str | None) -> Path:
@@ -41,14 +42,7 @@ def _print_bill(bill) -> None:
 
 
 def _print_split(result) -> None:
-    print(f"\nMethod: {result.method}   Total: ${result.total}\n")
-    print(f"{'Unit':<6}{'Tenant':<16}{'Weight':<10}{'Owes':>10}")
-    print("-" * 42)
-    for row in result.as_rows():
-        print(f"{row['unit']:<6}{row['tenant']:<16}{row['weight']:<10}${row['amount']:>9}")
-    if result.remainder_applied_to:
-        print(f"\n(rounding remainder applied to unit {result.remainder_applied_to})")
-    print()
+    print(f"\n{format_split_table(result)}\n")
 
 
 def main(argv=None) -> int:
