@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "utility-split-agent"
+version = "0.1.0"
+description = "Config-driven utility bill splitting with deterministic Decimal math and optional LLM bill parsing."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "anthropic>=0.60",
+    "playwright>=1.45",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+utility-split = "cli:main"
+
+[tool.setuptools]
+py-modules = ["cli", "demo"]
+packages = ["fetchers", "parser", "splitter"]

@@ -5,7 +5,9 @@ next work is about making it easier to adopt, demo, and extend safely.
 
 ## Now
 
-- Add a one-command local setup path with pinned developer dependencies.
+- Add a one-command local setup path with pinned developer dependencies. **Done:
+  editable install and `utility-split` console script are defined in
+  `pyproject.toml`.**
 - Add a sample output file so visitors can inspect results without running code.
 - Add GitHub issue templates for bug reports, provider requests, and roadmap
   tasks.
@@ -14,8 +16,7 @@ next work is about making it easier to adopt, demo, and extend safely.
 
 ## Next
 
-- Package the CLI so it can run as `utility-split` after install.
-- Add JSON and CSV output modes for importing split results into spreadsheets.
+- Add CSV output mode for importing split results into spreadsheets.
 - Add validation for tenant config files with clearer error messages.
 - Add a dry-run provider harness that records selector expectations without
   logging into a real account.

@@ -62,14 +62,16 @@ pure Python.
 ## Quick start
 
 ```bash
-pip install pytest pyyaml anthropic
-python demo.py        # runs an end-to-end split on synthetic data
-python -m pytest -q   # test suite
+python -m pip install -e ".[dev]"
+utility-split --amount 247.86 --config config/tenants.example.yaml
+python demo.py
+python -m pytest -q
 ```
 
-`demo.py` and the test suite need no credentials and no real data. The `anthropic`
-dependency is only used by the bill parser (below); the split engine and all tests
-run without it. To parse real bills, put `ANTHROPIC_API_KEY` in `.env` (gitignored).
+`demo.py`, `utility-split --amount`, and the test suite need no credentials and
+no real data. The `anthropic` dependency is only used by the bill parser (below);
+the split engine and all tests run without it. To parse real bills, put
+`ANTHROPIC_API_KEY` in `.env` (gitignored).
 
 ## Split methods
 
@@ -141,7 +143,9 @@ python cli.py --fetch example                      # download from a provider, p
 python cli.py bills/may_water.pdf                  # parse a local PDF (needs API key), then split
 python cli.py bills/may_water.pdf --config config/tenants.yaml
 python cli.py --amount 247.86                      # skip the LLM; split a known total (no key)
+python cli.py --amount 247.86 --json               # emit machine-readable JSON
 python cli.py --list-providers                     # show registered fetchers
+utility-split --amount 247.86                      # installed console script
 ```
 
 It resolves the config the same way `demo.py` does (prefers `config/tenants.yaml`,
