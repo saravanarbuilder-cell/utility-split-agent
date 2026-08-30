@@ -10,13 +10,14 @@ parses it. The PDF path uses the LLM parser (needs ANTHROPIC_API_KEY in .env).
 The --amount form does the split only and needs no credentials.
 """
 import argparse
+import json
 import sys
 from pathlib import Path
 
 import yaml
 
 from splitter.engine import split_bill
-from splitter.output import format_split_table
+from splitter.output import format_split_table, split_result_payload
 
 
 def _resolve_config(explicit: str | None) -> Path:
@@ -57,6 +58,7 @@ def main(argv=None) -> int:
     p.add_argument("--model", default="claude-opus-4-8", help="model for PDF extraction")
     p.add_argument("--download-dir", default="downloads", help="where fetched bills are saved (default: downloads/)")
     p.add_argument("--headful", action="store_true", help="show the browser during --fetch (default: headless)")
+    p.add_argument("--json", action="store_true", help="print split results as JSON instead of a table")
     p.add_argument("--list-providers", action="store_true", help="list registered fetchers and exit")
     args = p.parse_args(argv)
 
@@ -75,7 +77,8 @@ def main(argv=None) -> int:
         print(f"error: config not found: {config_path}", file=sys.stderr)
         return 2
     config = yaml.safe_load(config_path.read_text())
-    print(f"Config: {config_path}")
+    if not args.json:
+        print(f"Config: {config_path}")
 
     if args.amount:
         total = args.amount
@@ -88,9 +91,11 @@ def main(argv=None) -> int:
                 fetcher = get_fetcher_class(args.fetch).from_env(
                     download_dir=args.download_dir, headless=not args.headful
                 )
-                print(f"Fetching latest bill from '{args.fetch}'...")
+                if not args.json:
+                    print(f"Fetching latest bill from '{args.fetch}'...")
                 pdf_path = fetcher.fetch_latest_bill()
-                print(f"Downloaded: {pdf_path}")
+                if not args.json:
+                    print(f"Downloaded: {pdf_path}")
             except (KeyError, ValueError) as e:  # unknown provider / missing creds
                 print(f"error: {e}", file=sys.stderr)
                 return 2
@@ -111,7 +116,8 @@ def main(argv=None) -> int:
         except Exception as e:  # SDK/auth/network errors or validation ValueError
             print(f"error: could not parse bill: {e}", file=sys.stderr)
             return 1
-        _print_bill(bill)
+        if not args.json:
+            _print_bill(bill)
         total = bill.amount
 
     try:
@@ -119,7 +125,10 @@ def main(argv=None) -> int:
     except ValueError as e:
         print(f"error: could not split bill: {e}", file=sys.stderr)
         return 1
-    _print_split(result)
+    if args.json:
+        print(json.dumps(split_result_payload(result, str(config_path)), indent=2))
+    else:
+        _print_split(result)
     return 0
 
 

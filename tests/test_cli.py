@@ -1,4 +1,6 @@
 """Smoke tests for the CLI wiring — the --amount path needs no key or PDF."""
+import json
+
 import cli
 
 
@@ -8,6 +10,22 @@ def test_amount_path_runs_and_splits(capsys):
     assert rc == 0
     assert "Total: $247.86" in out
     assert "$    99.14" in out  # Tenant One @ 40%
+
+
+def test_amount_path_can_print_json(capsys):
+    rc = cli.main([
+        "--amount",
+        "247.86",
+        "--config",
+        "config/tenants.example.yaml",
+        "--json",
+    ])
+    payload = json.loads(capsys.readouterr().out)
+    assert rc == 0
+    assert payload["config_path"] == "config/tenants.example.yaml"
+    assert payload["method"] == "fixed_percent"
+    assert payload["total"] == "247.86"
+    assert payload["charges"][0]["amount"] == "99.14"
 
 
 def test_requires_pdf_or_amount(capsys):
