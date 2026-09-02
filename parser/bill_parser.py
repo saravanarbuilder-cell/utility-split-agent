@@ -119,6 +119,8 @@ def build_parsed_bill(fields: dict) -> ParsedBill:
         amount = Decimal(_clean_number(raw_amount))
     except InvalidOperation as e:
         raise ValueError(f"amount_due: could not parse {raw_amount!r} as a number.") from e
+    if not amount.is_finite():
+        raise ValueError(f"amount_due must be a finite number, got {amount}.")
     if amount <= 0:
         raise ValueError(f"amount_due must be positive, got {amount}.")
     amount = _money(amount)
@@ -135,6 +137,8 @@ def build_parsed_bill(fields: dict) -> ParsedBill:
             meter = Decimal(_clean_number(raw_meter))
         except InvalidOperation as e:
             raise ValueError(f"meter_reading: could not parse {raw_meter!r} as a number.") from e
+        if not meter.is_finite():
+            raise ValueError(f"meter_reading must be finite, got {meter}.")
         if meter < 0:
             raise ValueError(f"meter_reading cannot be negative, got {meter}.")
 

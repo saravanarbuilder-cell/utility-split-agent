@@ -79,6 +79,13 @@ def test_unparseable_amount_rejected():
                            "service_period_end": None, "meter_reading": None, "notes": ""})
 
 
+def test_non_finite_amount_rejected():
+    for bad in ("NaN", "Infinity", "-Infinity"):
+        with pytest.raises(ValueError, match="finite number"):
+            build_parsed_bill({"amount_due": bad, "service_period_start": None,
+                               "service_period_end": None, "meter_reading": None, "notes": ""})
+
+
 def test_end_before_start_rejected():
     with pytest.raises(ValueError, match="before it starts"):
         build_parsed_bill({
@@ -108,6 +115,17 @@ def test_negative_meter_reading_rejected():
             "service_period_start": None,
             "service_period_end": None,
             "meter_reading": "-3",
+            "notes": "",
+        })
+
+
+def test_non_finite_meter_reading_rejected():
+    with pytest.raises(ValueError, match="meter_reading must be finite"):
+        build_parsed_bill({
+            "amount_due": "10.00",
+            "service_period_start": None,
+            "service_period_end": None,
+            "meter_reading": "NaN",
             "notes": "",
         })
 
