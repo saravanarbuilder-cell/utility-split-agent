@@ -9,6 +9,7 @@ next work is about making it easier to adopt, demo, and extend safely.
   editable install and `utility-split` console script are defined in
   `pyproject.toml`.**
 - Add a sample output file so visitors can inspect results without running code.
+  **Done: `docs/sample-output.md` shows the example split output.**
 - Add GitHub issue templates for bug reports, provider requests, and roadmap
   tasks.
 - Document how to add a real provider fetcher without committing secrets or

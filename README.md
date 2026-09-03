@@ -73,6 +73,9 @@ no real data. The `anthropic` dependency is only used by the bill parser (below)
 the split engine and all tests run without it. To parse real bills, put
 `ANTHROPIC_API_KEY` in `.env` (gitignored).
 
+To inspect the shape of a split without running anything, see
+[docs/sample-output.md](docs/sample-output.md).
+
 ## Split methods
 
 Set `method` in your config:
