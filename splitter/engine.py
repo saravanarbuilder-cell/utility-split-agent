@@ -83,6 +83,8 @@ def split_bill(total, config: dict) -> SplitResult:
         raise ValueError("Config has no units.")
 
     total = _money(total)
+    if total <= 0:
+        raise ValueError("Bill total must be positive.")
 
     # 1. Determine each unit's raw weight.
     if method == "equal":

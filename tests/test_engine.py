@@ -41,6 +41,14 @@ def test_fixed_percent_rejects_bad_sum():
         split_bill("100.00", cfg)
 
 
+@pytest.mark.parametrize("total", ["0", "-10.00"])
+def test_rejects_non_positive_total(total):
+    cfg = {"method": "equal", "units": [{"unit": "A", "tenant": "T1"}]}
+
+    with pytest.raises(ValueError, match="Bill total must be positive"):
+        split_bill(total, cfg)
+
+
 def test_weighted_method_rejects_missing_weight():
     cfg = {"method": "occupancy", "units": [
         {"unit": "A", "tenant": "T1", "occupants": 2},
