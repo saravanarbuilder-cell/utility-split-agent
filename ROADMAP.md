@@ -11,7 +11,8 @@ next work is about making it easier to adopt, demo, and extend safely.
 - Add a sample output file so visitors can inspect results without running code.
   **Done: `docs/sample-output.md` shows the example split output.**
 - Add GitHub issue templates for bug reports, provider requests, and roadmap
-  tasks.
+  tasks. **Done: `.github/ISSUE_TEMPLATE/` now includes scoped templates for
+  each workflow.**
 - Document how to add a real provider fetcher without committing secrets or
   tenant data.
 
