@@ -28,6 +28,16 @@ def _resolve_config(explicit: str | None) -> Path:
     return real if real.exists() else Path("config/tenants.example.yaml")
 
 
+def _load_config(path: Path) -> dict:
+    try:
+        config = yaml.safe_load(path.read_text())
+    except yaml.YAMLError as e:
+        raise ValueError(f"invalid YAML in config: {e}") from e
+    if not isinstance(config, dict):
+        raise ValueError("config must be a YAML mapping")
+    return config
+
+
 def _print_bill(bill) -> None:
     print("\nParsed bill")
     print(f"  amount:        ${bill.amount}")
@@ -76,7 +86,11 @@ def main(argv=None) -> int:
     if not config_path.exists():
         print(f"error: config not found: {config_path}", file=sys.stderr)
         return 2
-    config = yaml.safe_load(config_path.read_text())
+    try:
+        config = _load_config(config_path)
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
     if not args.json:
         print(f"Config: {config_path}")
 

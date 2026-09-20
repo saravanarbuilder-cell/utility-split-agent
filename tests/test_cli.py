@@ -43,6 +43,28 @@ def test_missing_config_returns_2(capsys):
     assert rc == 2
 
 
+def test_invalid_config_yaml_returns_2(tmp_path, capsys):
+    config = tmp_path / "tenants.yaml"
+    config.write_text("method: [\n")
+
+    rc = cli.main(["--amount", "10.00", "--config", str(config)])
+    err = capsys.readouterr().err
+
+    assert rc == 2
+    assert "invalid YAML in config" in err
+
+
+def test_empty_config_returns_2(tmp_path, capsys):
+    config = tmp_path / "tenants.yaml"
+    config.write_text("")
+
+    rc = cli.main(["--amount", "10.00", "--config", str(config)])
+    err = capsys.readouterr().err
+
+    assert rc == 2
+    assert "config must be a YAML mapping" in err
+
+
 def test_missing_pdf_returns_2(capsys):
     rc = cli.main(["does-not-exist.pdf", "--config", "config/tenants.example.yaml"])
     err = capsys.readouterr().err
