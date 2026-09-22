@@ -8,7 +8,7 @@ implements the *shapes* of splits and the money-safe arithmetic.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 
 SUPPORTED_METHODS = {
@@ -59,6 +59,18 @@ def _money(x) -> Decimal:
     return Decimal(str(x)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
+def _weight(value, *, unit: str | None, field: str) -> Decimal:
+    try:
+        weight = Decimal(str(value))
+    except (InvalidOperation, ValueError) as e:
+        raise ValueError(f"Unit {unit!r} has invalid {field}: {value!r}.") from e
+    if not weight.is_finite():
+        raise ValueError(f"Unit {unit!r} has invalid {field}: {value!r}.")
+    if weight < 0:
+        raise ValueError(f"Unit {unit!r} has negative {field}.")
+    return weight
+
+
 def split_bill(total, config: dict) -> SplitResult:
     """Split `total` across the units defined in `config`.
 
@@ -93,12 +105,10 @@ def split_bill(total, config: dict) -> SplitResult:
         field = _WEIGHT_FIELD[method]
         weights = []
         for u in units:
+            unit = u.get("unit")
             if field not in u:
-                raise ValueError(f"Unit {u.get('unit')!r} missing '{field}' for method '{method}'.")
-            w = Decimal(str(u[field]))
-            if w < 0:
-                raise ValueError(f"Unit {u.get('unit')!r} has negative {field}.")
-            weights.append(w)
+                raise ValueError(f"Unit {unit!r} missing '{field}' for method '{method}'.")
+            weights.append(_weight(u[field], unit=unit, field=field))
 
     if method == "fixed_percent":
         pct_sum = sum(weights)

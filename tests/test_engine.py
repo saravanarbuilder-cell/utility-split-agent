@@ -59,6 +59,17 @@ def test_weighted_method_rejects_missing_weight():
         split_bill("100.00", cfg)
 
 
+@pytest.mark.parametrize("bad_weight", ["many", "NaN", "Infinity"])
+def test_weighted_method_rejects_invalid_weight_values(bad_weight):
+    cfg = {"method": "occupancy", "units": [
+        {"unit": "A", "tenant": "T1", "occupants": bad_weight},
+        {"unit": "B", "tenant": "T2", "occupants": 2},
+    ]}
+
+    with pytest.raises(ValueError, match="Unit 'A' has invalid occupants"):
+        split_bill("100.00", cfg)
+
+
 def test_weighted_method_rejects_zero_total_weight():
     cfg = {"method": "square_footage", "units": [
         {"unit": "A", "tenant": "T1", "sqft": 0},
