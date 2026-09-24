@@ -93,6 +93,8 @@ def split_bill(total, config: dict) -> SplitResult:
     units = config.get("units") or []
     if not units:
         raise ValueError("Config has no units.")
+    if not all(isinstance(unit, dict) for unit in units):
+        raise ValueError("Each config unit must be a mapping.")
 
     total = _money(total)
     if total <= 0:
