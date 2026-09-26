@@ -72,6 +72,13 @@ def test_missing_pdf_returns_2(capsys):
     assert "PDF not found" in err
 
 
+def test_invalid_amount_returns_error(capsys):
+    rc = cli.main(["--amount", "not-money", "--config", "config/tenants.example.yaml"])
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "Bill total must be a valid number" in err
+
+
 def test_list_providers(capsys):
     rc = cli.main(["--list-providers"])
     out = capsys.readouterr().out

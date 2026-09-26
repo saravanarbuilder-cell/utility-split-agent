@@ -49,6 +49,14 @@ def test_rejects_non_positive_total(total):
         split_bill(total, cfg)
 
 
+@pytest.mark.parametrize("total", ["not-money", "NaN", "Infinity"])
+def test_rejects_invalid_total_values(total):
+    cfg = {"method": "equal", "units": [{"unit": "A", "tenant": "T1"}]}
+
+    with pytest.raises(ValueError, match="Bill total must be .*number"):
+        split_bill(total, cfg)
+
+
 def test_weighted_method_rejects_missing_weight():
     cfg = {"method": "occupancy", "units": [
         {"unit": "A", "tenant": "T1", "occupants": 2},

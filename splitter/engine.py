@@ -56,7 +56,13 @@ class SplitResult:
 
 
 def _money(x) -> Decimal:
-    return Decimal(str(x)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    try:
+        value = Decimal(str(x))
+    except (InvalidOperation, ValueError) as e:
+        raise ValueError(f"Bill total must be a valid number, got {x!r}.") from e
+    if not value.is_finite():
+        raise ValueError(f"Bill total must be a finite number, got {x!r}.")
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 def _weight(value, *, unit: str | None, field: str) -> Decimal:
