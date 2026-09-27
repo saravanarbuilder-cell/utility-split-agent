@@ -83,7 +83,10 @@ class ParsedBill:
 
 
 def _money(x) -> Decimal:
-    return Decimal(str(x)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    try:
+        return Decimal(str(x)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    except InvalidOperation as e:
+        raise ValueError(f"amount_due: could not round {x!r} to cents.") from e
 
 
 def _clean_number(raw: str) -> str:

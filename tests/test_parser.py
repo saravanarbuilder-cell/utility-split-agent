@@ -86,6 +86,12 @@ def test_non_finite_amount_rejected():
                                "service_period_end": None, "meter_reading": None, "notes": ""})
 
 
+def test_amount_too_large_to_round_to_cents_rejected():
+    with pytest.raises(ValueError, match="could not round"):
+        build_parsed_bill({"amount_due": "1e100", "service_period_start": None,
+                           "service_period_end": None, "meter_reading": None, "notes": ""})
+
+
 def test_end_before_start_rejected():
     with pytest.raises(ValueError, match="before it starts"):
         build_parsed_bill({

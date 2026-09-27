@@ -62,7 +62,10 @@ def _money(x) -> Decimal:
         raise ValueError(f"Bill total must be a valid number, got {x!r}.") from e
     if not value.is_finite():
         raise ValueError(f"Bill total must be a finite number, got {x!r}.")
-    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    try:
+        return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    except InvalidOperation as e:
+        raise ValueError(f"Bill total must be a valid cents amount, got {x!r}.") from e
 
 
 def _weight(value, *, unit: str | None, field: str) -> Decimal:

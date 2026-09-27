@@ -57,6 +57,13 @@ def test_rejects_invalid_total_values(total):
         split_bill(total, cfg)
 
 
+def test_rejects_total_too_large_to_round_to_cents():
+    cfg = {"method": "equal", "units": [{"unit": "A", "tenant": "T1"}]}
+
+    with pytest.raises(ValueError, match="valid cents amount"):
+        split_bill("1e100", cfg)
+
+
 def test_weighted_method_rejects_missing_weight():
     cfg = {"method": "occupancy", "units": [
         {"unit": "A", "tenant": "T1", "occupants": 2},
