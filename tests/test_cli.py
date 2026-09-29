@@ -28,6 +28,33 @@ def test_amount_path_can_print_json(capsys):
     assert payload["charges"][0]["amount"] == "99.14"
 
 
+def test_amount_path_can_print_csv(capsys):
+    rc = cli.main([
+        "--amount",
+        "247.86",
+        "--config",
+        "config/tenants.example.yaml",
+        "--csv",
+    ])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert out.splitlines() == [
+        "unit,tenant,weight,amount",
+        "A,Tenant One,40,99.14",
+        "B,Tenant Two,35,86.75",
+        "C,Tenant Three,25,61.97",
+    ]
+
+
+def test_rejects_multiple_output_formats(capsys):
+    try:
+        cli.main(["--amount", "10.00", "--json", "--csv"])
+    except SystemExit as e:
+        assert e.code == 2
+    else:
+        raise AssertionError("expected SystemExit")
+
+
 def test_requires_pdf_or_amount(capsys):
     # argparse calls parser.error -> SystemExit(2)
     try:

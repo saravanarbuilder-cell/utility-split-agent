@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import csv
+from io import StringIO
+
 from splitter.engine import SplitResult
 
 
@@ -33,3 +36,12 @@ def format_split_table(result: SplitResult) -> str:
     if result.remainder_applied_to:
         lines.extend(["", f"(rounding remainder applied to unit {result.remainder_applied_to})"])
     return "\n".join(lines)
+
+
+def format_split_csv(result: SplitResult) -> str:
+    """Return split results as CSV for spreadsheet import."""
+    out = StringIO()
+    writer = csv.DictWriter(out, fieldnames=["unit", "tenant", "weight", "amount"])
+    writer.writeheader()
+    writer.writerows(result.as_rows())
+    return out.getvalue().rstrip("\r\n")

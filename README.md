@@ -147,6 +147,7 @@ python cli.py bills/may_water.pdf                  # parse a local PDF (needs AP
 python cli.py bills/may_water.pdf --config config/tenants.yaml
 python cli.py --amount 247.86                      # skip the LLM; split a known total (no key)
 python cli.py --amount 247.86 --json               # emit machine-readable JSON
+python cli.py --amount 247.86 --csv                # emit spreadsheet-ready CSV
 python cli.py --list-providers                     # show registered fetchers
 utility-split --amount 247.86                      # installed console script
 ```

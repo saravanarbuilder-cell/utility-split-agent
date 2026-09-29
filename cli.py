@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 
 from splitter.engine import split_bill
-from splitter.output import format_split_table, split_result_payload
+from splitter.output import format_split_csv, format_split_table, split_result_payload
 
 
 def _resolve_config(explicit: str | None) -> Path:
@@ -69,6 +69,7 @@ def main(argv=None) -> int:
     p.add_argument("--download-dir", default="downloads", help="where fetched bills are saved (default: downloads/)")
     p.add_argument("--headful", action="store_true", help="show the browser during --fetch (default: headless)")
     p.add_argument("--json", action="store_true", help="print split results as JSON instead of a table")
+    p.add_argument("--csv", action="store_true", help="print split results as CSV instead of a table")
     p.add_argument("--list-providers", action="store_true", help="list registered fetchers and exit")
     args = p.parse_args(argv)
 
@@ -81,6 +82,8 @@ def main(argv=None) -> int:
     sources = [bool(args.pdf), bool(args.fetch), bool(args.amount)]
     if sum(sources) != 1:
         p.error("provide exactly one of: a PDF path, --fetch PROVIDER, or --amount")
+    if args.json and args.csv:
+        p.error("choose only one output format: --json or --csv")
 
     config_path = _resolve_config(args.config)
     if not config_path.exists():
@@ -91,7 +94,7 @@ def main(argv=None) -> int:
     except ValueError as e:
         print(f"error: {e}", file=sys.stderr)
         return 2
-    if not args.json:
+    if not (args.json or args.csv):
         print(f"Config: {config_path}")
 
     if args.amount:
@@ -105,10 +108,10 @@ def main(argv=None) -> int:
                 fetcher = get_fetcher_class(args.fetch).from_env(
                     download_dir=args.download_dir, headless=not args.headful
                 )
-                if not args.json:
+                if not (args.json or args.csv):
                     print(f"Fetching latest bill from '{args.fetch}'...")
                 pdf_path = fetcher.fetch_latest_bill()
-                if not args.json:
+                if not (args.json or args.csv):
                     print(f"Downloaded: {pdf_path}")
             except (KeyError, ValueError) as e:  # unknown provider / missing creds
                 print(f"error: {e}", file=sys.stderr)
@@ -130,7 +133,7 @@ def main(argv=None) -> int:
         except Exception as e:  # SDK/auth/network errors or validation ValueError
             print(f"error: could not parse bill: {e}", file=sys.stderr)
             return 1
-        if not args.json:
+        if not (args.json or args.csv):
             _print_bill(bill)
         total = bill.amount
 
@@ -141,6 +144,8 @@ def main(argv=None) -> int:
         return 1
     if args.json:
         print(json.dumps(split_result_payload(result, str(config_path)), indent=2))
+    elif args.csv:
+        print(format_split_csv(result))
     else:
         _print_split(result)
     return 0

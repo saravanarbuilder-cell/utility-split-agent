@@ -18,7 +18,8 @@ next work is about making it easier to adopt, demo, and extend safely.
 
 ## Next
 
-- Add CSV output mode for importing split results into spreadsheets.
+- Add CSV output mode for importing split results into spreadsheets. **Done:
+  `utility-split --amount ... --csv` emits spreadsheet-ready split rows.**
 - Add validation for tenant config files with clearer error messages.
 - Add a dry-run provider harness that records selector expectations without
   logging into a real account.
