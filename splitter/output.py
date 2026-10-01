@@ -8,6 +8,17 @@ from io import StringIO
 from splitter.engine import SplitResult
 
 
+_SPREADSHEET_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r", "\n")
+
+
+def _escape_spreadsheet_cell(value: str) -> str:
+    """Prevent spreadsheet apps from evaluating exported labels as formulas."""
+    text = str(value)
+    if text and text.lstrip().startswith(_SPREADSHEET_FORMULA_PREFIXES):
+        return f"'{text}"
+    return text
+
+
 def split_result_payload(result: SplitResult, config_path: str | None = None) -> dict:
     """Return a JSON-serializable split result payload."""
     payload = {
@@ -43,5 +54,12 @@ def format_split_csv(result: SplitResult) -> str:
     out = StringIO()
     writer = csv.DictWriter(out, fieldnames=["unit", "tenant", "weight", "amount"])
     writer.writeheader()
-    writer.writerows(result.as_rows())
+    for row in result.as_rows():
+        writer.writerow(
+            {
+                **row,
+                "unit": _escape_spreadsheet_cell(row["unit"]),
+                "tenant": _escape_spreadsheet_cell(row["tenant"]),
+            }
+        )
     return out.getvalue().rstrip("\r\n")

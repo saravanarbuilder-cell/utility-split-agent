@@ -1,5 +1,5 @@
 from splitter.engine import split_bill
-from splitter.output import format_split_table, split_result_payload
+from splitter.output import format_split_csv, format_split_table, split_result_payload
 
 
 def test_format_split_table_matches_cli_columns():
@@ -46,3 +46,24 @@ def test_split_result_payload_is_json_ready():
         ],
         "config_path": "config/tenants.example.yaml",
     }
+
+
+def test_format_split_csv_escapes_spreadsheet_formulas():
+    result = split_bill(
+        "100.00",
+        {
+            "method": "equal",
+            "units": [
+                {"unit": "=1+1", "tenant": "+SUM(A:A)"},
+                {"unit": " B", "tenant": "Tenant Two"},
+            ],
+        },
+    )
+
+    csv_text = format_split_csv(result)
+
+    assert csv_text.splitlines() == [
+        "unit,tenant,weight,amount",
+        "'=1+1,'+SUM(A:A),1,50.00",
+        " B,Tenant Two,1,50.00",
+    ]
