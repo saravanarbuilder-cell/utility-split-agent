@@ -81,6 +81,16 @@ def test_rejects_non_mapping_unit_entries():
         split_bill("100.00", cfg)
 
 
+def test_rejects_duplicate_unit_identifiers():
+    cfg = {"method": "equal", "units": [
+        {"unit": "A", "tenant": "T1"},
+        {"unit": "A", "tenant": "T2"},
+    ]}
+
+    with pytest.raises(ValueError, match="Duplicate unit identifiers"):
+        split_bill("100.00", cfg)
+
+
 @pytest.mark.parametrize("bad_weight", ["many", "NaN", "Infinity"])
 def test_weighted_method_rejects_invalid_weight_values(bad_weight):
     cfg = {"method": "occupancy", "units": [

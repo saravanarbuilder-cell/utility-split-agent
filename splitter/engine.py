@@ -104,6 +104,10 @@ def split_bill(total, config: dict) -> SplitResult:
         raise ValueError("Config has no units.")
     if not all(isinstance(unit, dict) for unit in units):
         raise ValueError("Each config unit must be a mapping.")
+    unit_names = [str(unit.get("unit", "?")) for unit in units]
+    duplicate_units = sorted({name for name in unit_names if unit_names.count(name) > 1})
+    if duplicate_units:
+        raise ValueError(f"Duplicate unit identifiers are not allowed: {duplicate_units}.")
 
     total = _money(total)
     if total <= 0:
