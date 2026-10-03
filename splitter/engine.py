@@ -80,6 +80,13 @@ def _weight(value, *, unit: str | None, field: str) -> Decimal:
     return weight
 
 
+def _required_label(unit: dict, field: str) -> str:
+    value = unit.get(field)
+    if value is None or not str(value).strip():
+        raise ValueError(f"Each config unit must have a non-empty {field}.")
+    return str(value)
+
+
 def split_bill(total, config: dict) -> SplitResult:
     """Split `total` across the units defined in `config`.
 
@@ -104,7 +111,8 @@ def split_bill(total, config: dict) -> SplitResult:
         raise ValueError("Config has no units.")
     if not all(isinstance(unit, dict) for unit in units):
         raise ValueError("Each config unit must be a mapping.")
-    unit_names = [str(unit.get("unit", "?")) for unit in units]
+    unit_names = [_required_label(unit, "unit") for unit in units]
+    tenant_names = [_required_label(unit, "tenant") for unit in units]
     duplicate_units = sorted({name for name in unit_names if unit_names.count(name) > 1})
     if duplicate_units:
         raise ValueError(f"Duplicate unit identifiers are not allowed: {duplicate_units}.")
@@ -136,12 +144,12 @@ def split_bill(total, config: dict) -> SplitResult:
 
     # 2. Compute each share, rounded to cents.
     charges: list[UnitCharge] = []
-    for u, w in zip(units, weights):
+    for unit_name, tenant_name, w in zip(unit_names, tenant_names, weights):
         raw = total * (w / weight_sum)
         charges.append(
             UnitCharge(
-                unit=str(u.get("unit", "?")),
-                tenant=str(u.get("tenant", "")),
+                unit=unit_name,
+                tenant=tenant_name,
                 amount=_money(raw),
                 weight=w,
             )

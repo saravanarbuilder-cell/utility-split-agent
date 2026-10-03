@@ -91,6 +91,22 @@ def test_rejects_duplicate_unit_identifiers():
         split_bill("100.00", cfg)
 
 
+@pytest.mark.parametrize(
+    ("unit", "message"),
+    [
+        ({"tenant": "T1"}, "non-empty unit"),
+        ({"unit": "   ", "tenant": "T1"}, "non-empty unit"),
+        ({"unit": "A"}, "non-empty tenant"),
+        ({"unit": "A", "tenant": ""}, "non-empty tenant"),
+    ],
+)
+def test_rejects_missing_unit_labels(unit, message):
+    cfg = {"method": "equal", "units": [unit]}
+
+    with pytest.raises(ValueError, match=message):
+        split_bill("100.00", cfg)
+
+
 @pytest.mark.parametrize("bad_weight", ["many", "NaN", "Infinity"])
 def test_weighted_method_rejects_invalid_weight_values(bad_weight):
     cfg = {"method": "occupancy", "units": [

@@ -106,6 +106,22 @@ def test_invalid_amount_returns_error(capsys):
     assert "Bill total must be a valid number" in err
 
 
+def test_invalid_unit_label_returns_error(tmp_path, capsys):
+    config = tmp_path / "tenants.yaml"
+    config.write_text("""
+method: equal
+units:
+  - unit: ""
+    tenant: Tenant One
+""")
+
+    rc = cli.main(["--amount", "10.00", "--config", str(config)])
+    err = capsys.readouterr().err
+
+    assert rc == 1
+    assert "Each config unit must have a non-empty unit" in err
+
+
 def test_list_providers(capsys):
     rc = cli.main(["--list-providers"])
     out = capsys.readouterr().out
