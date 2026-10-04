@@ -31,6 +31,8 @@ def _resolve_config(explicit: str | None) -> Path:
 def _load_config(path: Path) -> dict:
     try:
         config = yaml.safe_load(path.read_text())
+    except OSError as e:
+        raise ValueError(f"could not read config {path}: {e}") from e
     except yaml.YAMLError as e:
         raise ValueError(f"invalid YAML in config: {e}") from e
     if not isinstance(config, dict):

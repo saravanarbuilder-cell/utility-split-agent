@@ -92,6 +92,14 @@ def test_empty_config_returns_2(tmp_path, capsys):
     assert "config must be a YAML mapping" in err
 
 
+def test_unreadable_config_path_returns_2(tmp_path, capsys):
+    rc = cli.main(["--amount", "10.00", "--config", str(tmp_path)])
+    err = capsys.readouterr().err
+
+    assert rc == 2
+    assert "could not read config" in err
+
+
 def test_missing_pdf_returns_2(capsys):
     rc = cli.main(["does-not-exist.pdf", "--config", "config/tenants.example.yaml"])
     err = capsys.readouterr().err
