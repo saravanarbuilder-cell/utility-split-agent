@@ -65,5 +65,5 @@ def test_format_split_csv_escapes_spreadsheet_formulas():
     assert csv_text.splitlines() == [
         "unit,tenant,weight,amount",
         "'=1+1,'+SUM(A:A),1,50.00",
-        " B,Tenant Two,1,50.00",
+        "B,Tenant Two,1,50.00",
     ]

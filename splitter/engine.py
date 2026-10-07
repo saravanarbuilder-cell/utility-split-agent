@@ -82,9 +82,10 @@ def _weight(value, *, unit: str | None, field: str) -> Decimal:
 
 def _required_label(unit: dict, field: str) -> str:
     value = unit.get(field)
-    if value is None or not str(value).strip():
+    label = str(value).strip() if value is not None else ""
+    if not label:
         raise ValueError(f"Each config unit must have a non-empty {field}.")
-    return str(value)
+    return label
 
 
 def split_bill(total, config: dict) -> SplitResult:

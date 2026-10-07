@@ -91,6 +91,27 @@ def test_rejects_duplicate_unit_identifiers():
         split_bill("100.00", cfg)
 
 
+def test_rejects_duplicate_unit_identifiers_after_trimming():
+    cfg = {"method": "equal", "units": [
+        {"unit": "A", "tenant": "T1"},
+        {"unit": " A ", "tenant": "T2"},
+    ]}
+
+    with pytest.raises(ValueError, match="Duplicate unit identifiers"):
+        split_bill("100.00", cfg)
+
+
+def test_strips_unit_and_tenant_labels_in_results():
+    cfg = {"method": "equal", "units": [
+        {"unit": " A ", "tenant": " Tenant One "},
+    ]}
+
+    result = split_bill("10.00", cfg)
+
+    assert result.charges[0].unit == "A"
+    assert result.charges[0].tenant == "Tenant One"
+
+
 @pytest.mark.parametrize(
     ("unit", "message"),
     [
