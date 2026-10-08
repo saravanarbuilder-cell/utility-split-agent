@@ -92,6 +92,26 @@ def test_empty_config_returns_2(tmp_path, capsys):
     assert "config must be a YAML mapping" in err
 
 
+def test_config_path_expands_user_home(monkeypatch, tmp_path, capsys):
+    home = tmp_path / "home"
+    config_dir = home / "configs"
+    config_dir.mkdir(parents=True)
+    config = config_dir / "tenants.yaml"
+    config.write_text("""
+method: equal
+units:
+  - unit: A
+    tenant: Tenant One
+""")
+    monkeypatch.setenv("HOME", str(home))
+
+    rc = cli.main(["--amount", "10.00", "--config", "~/configs/tenants.yaml"])
+    out = capsys.readouterr().out
+
+    assert rc == 0
+    assert "Total: $10.00" in out
+
+
 def test_unreadable_config_path_returns_2(tmp_path, capsys):
     rc = cli.main(["--amount", "10.00", "--config", str(tmp_path)])
     err = capsys.readouterr().err

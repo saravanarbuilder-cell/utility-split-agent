@@ -47,6 +47,16 @@ def test_fetcher_from_env_builds_with_credentials():
     assert f.credentials.username == "u"
 
 
+def test_fetcher_download_dir_expands_user_home(monkeypatch, tmp_path):
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    creds = ProviderCredentials(url="https://x/login", username="u", password="p")
+
+    fetcher = ExampleProviderFetcher(creds, download_dir="~/downloads")
+
+    assert fetcher.download_dir == home / "downloads"
+
+
 # --- integration: real browser against a local fake portal -------------------
 
 def test_fetch_latest_bill_against_fake_portal(tmp_path, fake_portal, require_chromium):

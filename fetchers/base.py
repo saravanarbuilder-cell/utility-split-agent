@@ -69,7 +69,7 @@ class BaseFetcher(ABC):
         timeout_ms: int = 30_000,
     ):
         self.credentials = credentials
-        self.download_dir = Path(download_dir)
+        self.download_dir = Path(download_dir).expanduser()
         self.headless = headless
         self.timeout_ms = timeout_ms
 

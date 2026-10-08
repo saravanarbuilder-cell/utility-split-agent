@@ -22,7 +22,7 @@ from splitter.output import format_split_csv, format_split_table, split_result_p
 
 def _resolve_config(explicit: str | None) -> Path:
     if explicit:
-        return Path(explicit)
+        return Path(explicit).expanduser()
     # Prefer your real (gitignored) config; fall back to the committed example.
     real = Path("config/tenants.yaml")
     return real if real.exists() else Path("config/tenants.example.yaml")
