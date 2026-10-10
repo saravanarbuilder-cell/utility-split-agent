@@ -81,6 +81,14 @@ def test_rejects_non_mapping_unit_entries():
         split_bill("100.00", cfg)
 
 
+@pytest.mark.parametrize("units", ["A", {"unit": "A", "tenant": "T1"}])
+def test_rejects_units_that_are_not_a_list(units):
+    cfg = {"method": "equal", "units": units}
+
+    with pytest.raises(ValueError, match="Config units must be a list"):
+        split_bill("100.00", cfg)
+
+
 def test_rejects_duplicate_unit_identifiers():
     cfg = {"method": "equal", "units": [
         {"unit": "A", "tenant": "T1"},

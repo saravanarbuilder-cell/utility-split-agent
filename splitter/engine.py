@@ -110,6 +110,8 @@ def split_bill(total, config: dict) -> SplitResult:
     units = config.get("units") or []
     if not units:
         raise ValueError("Config has no units.")
+    if not isinstance(units, list):
+        raise ValueError("Config units must be a list of unit mappings.")
     if not all(isinstance(unit, dict) for unit in units):
         raise ValueError("Each config unit must be a mapping.")
     unit_names = [_required_label(unit, "unit") for unit in units]
