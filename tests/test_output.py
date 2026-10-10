@@ -1,4 +1,8 @@
-from splitter.engine import split_bill
+import csv
+from decimal import Decimal
+from io import StringIO
+
+from splitter.engine import SplitResult, UnitCharge, split_bill
 from splitter.output import format_split_csv, format_split_table, split_result_payload
 
 
@@ -49,21 +53,28 @@ def test_split_result_payload_is_json_ready():
 
 
 def test_format_split_csv_escapes_spreadsheet_formulas():
-    result = split_bill(
-        "100.00",
-        {
-            "method": "equal",
-            "units": [
-                {"unit": "=1+1", "tenant": "+SUM(A:A)"},
-                {"unit": " B", "tenant": "Tenant Two"},
-            ],
-        },
+    result = SplitResult(
+        method="equal",
+        total=Decimal("600.00"),
+        charges=[
+            UnitCharge("=1+1", "+SUM(A:A)", Decimal("100.00"), Decimal("1")),
+            UnitCharge("-1+1", "@cmd", Decimal("100.00"), Decimal("1")),
+            UnitCharge("\t=1+1", "\r=1+1", Decimal("100.00"), Decimal("1")),
+            UnitCharge("\n=1+1", "  =SUM(A:A)", Decimal("100.00"), Decimal("1")),
+            UnitCharge(" B", "Tenant Five", Decimal("100.00"), Decimal("1")),
+            UnitCharge("C", "Tenant Six", Decimal("100.00"), Decimal("1")),
+        ],
+        remainder_applied_to=None,
     )
 
     csv_text = format_split_csv(result)
 
-    assert csv_text.splitlines() == [
-        "unit,tenant,weight,amount",
-        "'=1+1,'+SUM(A:A),1,50.00",
-        "B,Tenant Two,1,50.00",
+    assert list(csv.reader(StringIO(csv_text))) == [
+        ["unit", "tenant", "weight", "amount"],
+        ["'=1+1", "'+SUM(A:A)", "1", "100.00"],
+        ["'-1+1", "'@cmd", "1", "100.00"],
+        ["'\t=1+1", "'\r=1+1", "1", "100.00"],
+        ["'\n=1+1", "'  =SUM(A:A)", "1", "100.00"],
+        [" B", "Tenant Five", "1", "100.00"],
+        ["C", "Tenant Six", "1", "100.00"],
     ]
