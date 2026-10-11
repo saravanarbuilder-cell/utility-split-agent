@@ -122,7 +122,7 @@ def main(argv=None) -> int:
                 print(f"error: could not fetch bill: {e}", file=sys.stderr)
                 return 1
         else:
-            pdf_path = Path(args.pdf)
+            pdf_path = Path(args.pdf).expanduser()
             if not pdf_path.exists():
                 print(f"error: PDF not found: {pdf_path}", file=sys.stderr)
                 return 2

@@ -127,6 +127,32 @@ def test_missing_pdf_returns_2(capsys):
     assert "PDF not found" in err
 
 
+def test_pdf_path_expands_user_home(monkeypatch, tmp_path):
+    home = tmp_path / "home"
+    home.mkdir()
+    pdf = home / "bill.pdf"
+    pdf.write_bytes(b"%PDF-1.4\n")
+    monkeypatch.setenv("HOME", str(home))
+
+    def fake_parse_bill(path, model):
+        from decimal import Decimal
+        from parser.bill_parser import ParsedBill
+
+        assert path == pdf
+        return ParsedBill(
+            amount=Decimal("10.00"),
+            service_period_start=None,
+            service_period_end=None,
+            meter_reading=None,
+        )
+
+    monkeypatch.setattr("parser.parse_bill", fake_parse_bill)
+
+    rc = cli.main(["~/bill.pdf", "--config", "config/tenants.example.yaml"])
+
+    assert rc == 0
+
+
 def test_invalid_amount_returns_error(capsys):
     rc = cli.main(["--amount", "not-money", "--config", "config/tenants.example.yaml"])
     err = capsys.readouterr().err
