@@ -81,9 +81,22 @@ def test_rejects_non_mapping_unit_entries():
         split_bill("100.00", cfg)
 
 
+@pytest.mark.parametrize("config", [None, [], "method: equal"])
+def test_rejects_config_that_is_not_a_mapping(config):
+    with pytest.raises(ValueError, match="Config must be a mapping"):
+        split_bill("100.00", config)
+
+
 @pytest.mark.parametrize("units", ["A", {"unit": "A", "tenant": "T1"}])
 def test_rejects_units_that_are_not_a_list(units):
     cfg = {"method": "equal", "units": units}
+
+    with pytest.raises(ValueError, match="Config units must be a list"):
+        split_bill("100.00", cfg)
+
+
+def test_rejects_empty_string_units_as_not_a_list():
+    cfg = {"method": "equal", "units": ""}
 
     with pytest.raises(ValueError, match="Config units must be a list"):
         split_bill("100.00", cfg)
