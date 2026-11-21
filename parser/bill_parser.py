@@ -12,6 +12,7 @@ The extracted `amount` is the total that feeds `splitter.engine.split_bill`.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
@@ -114,6 +115,9 @@ def build_parsed_bill(fields: dict) -> ParsedBill:
     anything that can't be a legitimate bill (missing/negative amount, unparseable
     numbers or dates, an end date before the start).
     """
+    if not isinstance(fields, Mapping):
+        raise ValueError("Extracted bill fields must be a mapping.")
+
     if "amount_due" not in fields or fields["amount_due"] in (None, ""):
         raise ValueError("Extracted bill is missing an amount_due.")
 

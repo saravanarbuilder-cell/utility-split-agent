@@ -66,6 +66,12 @@ def test_missing_amount_rejected():
                            "service_period_end": None, "meter_reading": None, "notes": ""})
 
 
+@pytest.mark.parametrize("fields", [None, [], "not a mapping"])
+def test_non_mapping_extraction_rejected(fields):
+    with pytest.raises(ValueError, match="fields must be a mapping"):
+        build_parsed_bill(fields)
+
+
 def test_zero_and_negative_amount_rejected():
     for bad in ("0.00", "-5.00"):
         with pytest.raises(ValueError, match="must be positive"):
