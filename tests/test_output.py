@@ -26,6 +26,27 @@ def test_format_split_table_matches_cli_columns():
     assert "A     Tenant One      40        $    99.14" in table
 
 
+def test_format_split_table_expands_for_long_labels():
+    result = SplitResult(
+        method="equal",
+        total=Decimal("100.00"),
+        charges=[
+            UnitCharge(
+                "Apartment 101 North",
+                "A Tenant With A Long Name",
+                Decimal("100.00"),
+                Decimal("1"),
+            ),
+        ],
+        remainder_applied_to=None,
+    )
+
+    lines = format_split_table(result).splitlines()
+
+    assert "Apartment 101 North  A Tenant With A Long Name  1         $   100.00" in lines
+    assert len(lines[2]) == len(lines[3]) == len(lines[4])
+
+
 def test_split_result_payload_is_json_ready():
     result = split_bill(
         "100.00",

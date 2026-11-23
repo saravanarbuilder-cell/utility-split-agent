@@ -34,15 +34,19 @@ def split_result_payload(result: SplitResult, config_path: str | None = None) ->
 
 def format_split_table(result: SplitResult) -> str:
     """Return the human-readable split table used by CLI and demo output."""
+    rows = result.as_rows()
+    unit_width = max(6, max((len(row["unit"]) + 2 for row in rows), default=0))
+    tenant_width = max(16, max((len(row["tenant"]) + 2 for row in rows), default=0))
     lines = [
         f"Method: {result.method}   Total: ${result.total}",
         "",
-        f"{'Unit':<6}{'Tenant':<16}{'Weight':<10}{'Owes':>10}",
-        "-" * 42,
+        f"{'Unit':<{unit_width}}{'Tenant':<{tenant_width}}{'Weight':<10}{'Owes':>10}",
+        "-" * (unit_width + tenant_width + 20),
     ]
-    for row in result.as_rows():
+    for row in rows:
         lines.append(
-            f"{row['unit']:<6}{row['tenant']:<16}{row['weight']:<10}${row['amount']:>9}"
+            f"{row['unit']:<{unit_width}}{row['tenant']:<{tenant_width}}"
+            f"{row['weight']:<10}${row['amount']:>9}"
         )
     if result.remainder_applied_to:
         lines.extend(["", f"(rounding remainder applied to unit {result.remainder_applied_to})"])
