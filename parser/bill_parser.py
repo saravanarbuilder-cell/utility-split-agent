@@ -207,5 +207,10 @@ def parse_bill(pdf_path, *, client=None, model: str = _MODEL) -> ParsedBill:
     """Read a bill PDF from disk and return a validated ParsedBill."""
     from pathlib import Path
 
-    raw = extract_bill_fields(Path(pdf_path).read_bytes(), client=client, model=model)
+    path = Path(pdf_path)
+    pdf_bytes = path.read_bytes()
+    if not pdf_bytes.startswith(b"%PDF-"):
+        raise ValueError(f"Bill file is not a PDF: {path}")
+
+    raw = extract_bill_fields(pdf_bytes, client=client, model=model)
     return build_parsed_bill(raw)

@@ -9,7 +9,7 @@ from decimal import Decimal
 
 import pytest
 
-from parser.bill_parser import ParsedBill, build_parsed_bill
+from parser.bill_parser import ParsedBill, build_parsed_bill, parse_bill
 
 
 def test_full_bill_parses_and_feeds_engine():
@@ -153,3 +153,16 @@ def test_parsed_bill_amount_flows_into_split_bill():
     ]}
     result = split_bill(bill.amount, cfg)
     assert sum(c.amount for c in result.charges) == Decimal("200.00")
+
+
+def test_parse_bill_rejects_non_pdf_before_extraction(tmp_path, monkeypatch):
+    bill_path = tmp_path / "bill.pdf"
+    bill_path.write_text("This is not actually a PDF.")
+
+    def fail_if_called(*args, **kwargs):
+        pytest.fail("invalid files must not be sent for extraction")
+
+    monkeypatch.setattr("parser.bill_parser.extract_bill_fields", fail_if_called)
+
+    with pytest.raises(ValueError, match="not a PDF"):
+        parse_bill(bill_path)
