@@ -65,6 +65,10 @@ _SYSTEM = (
 )
 
 _MODEL = "claude-opus-4-8"
+# Base64 expands the file by roughly one third. Keeping the raw PDF at or below
+# 24 MiB prevents the encoded document from exceeding the API's 32 MiB request
+# limit before JSON overhead is added.
+_MAX_PDF_BYTES = 24 * 1024 * 1024
 
 
 @dataclass
@@ -208,6 +212,12 @@ def parse_bill(pdf_path, *, client=None, model: str = _MODEL) -> ParsedBill:
     from pathlib import Path
 
     path = Path(pdf_path)
+    size = path.stat().st_size
+    if size > _MAX_PDF_BYTES:
+        raise ValueError(
+            f"Bill PDF is too large ({size:,} bytes); maximum is "
+            f"{_MAX_PDF_BYTES:,} bytes."
+        )
     pdf_bytes = path.read_bytes()
     if not pdf_bytes.startswith(b"%PDF-"):
         raise ValueError(f"Bill file is not a PDF: {path}")

@@ -9,7 +9,7 @@ from decimal import Decimal
 
 import pytest
 
-from parser.bill_parser import ParsedBill, build_parsed_bill, parse_bill
+from parser.bill_parser import _MAX_PDF_BYTES, ParsedBill, build_parsed_bill, parse_bill
 
 
 def test_full_bill_parses_and_feeds_engine():
@@ -165,4 +165,20 @@ def test_parse_bill_rejects_non_pdf_before_extraction(tmp_path, monkeypatch):
     monkeypatch.setattr("parser.bill_parser.extract_bill_fields", fail_if_called)
 
     with pytest.raises(ValueError, match="not a PDF"):
+        parse_bill(bill_path)
+
+
+def test_parse_bill_rejects_oversized_pdf_before_read_or_extraction(tmp_path, monkeypatch):
+    bill_path = tmp_path / "bill.pdf"
+    bill_path.write_bytes(b"%PDF-1.4\n")
+    with bill_path.open("r+b") as pdf_file:
+        pdf_file.truncate(_MAX_PDF_BYTES + 1)
+
+    def fail_if_called(*args, **kwargs):
+        pytest.fail("oversized files must not be read or sent for extraction")
+
+    monkeypatch.setattr("pathlib.Path.read_bytes", fail_if_called)
+    monkeypatch.setattr("parser.bill_parser.extract_bill_fields", fail_if_called)
+
+    with pytest.raises(ValueError, match="Bill PDF is too large"):
         parse_bill(bill_path)
